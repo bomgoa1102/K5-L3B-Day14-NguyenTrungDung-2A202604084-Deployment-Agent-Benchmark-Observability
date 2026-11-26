@@ -42,7 +42,17 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 - Đã chạy container develop và gọi `POST /ask?question=What%20is%20Docker`: HTTP 200. Bản production trả HTTP 200 tại `/health`. Ví dụ develop nhận question qua query, không phải JSON body.
 - Docker Hub trả 429 khi tải `python:3.11`; dùng image tương ứng từ public ECR rồi gắn tag local để build.
 
-Exercise 2.4: Chưa kiểm tra stack Compose qua Nginx.
+### Exercise 2.4: Docker Compose
+
+Stack có Nginx nhận request từ bên ngoài và chuyển vào agent. Agent được cấu hình địa chỉ Redis và Qdrant trên mạng nội bộ; Compose chờ Redis và Qdrant healthy trước khi khởi động agent.
+
+```text
+Client → Nginx → Agent
+                  ├── Redis
+                  └── Qdrant
+```
+
+Đã khởi động stack bằng Compose, gọi qua Nginx: `GET /health` trả HTTP 200; `POST /ask` với câu hỏi về microservices trả HTTP 200 và câu trả lời mock. Sau khi kiểm tra, đã dừng stack và xóa volume lab.
 
 ## Part 3: Cloud deployment
 
@@ -86,3 +96,4 @@ Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build i
 - Part 7: Dùng AI hỗ trợ tìm lỗi container observability không tìm thấy uvicorn; đặt HOME phù hợp với thư mục cài thư viện và kiểm tra lại request qua Nginx trả HTTP 200.
 - Part 7: Dùng AI hỗ trợ chạy Locust với 1 và 3 instance, dùng `--no-deps` để giữ đúng số instance và lấy số từ dòng POST /ask của CSV. `promtool test rules` trả SUCCESS.
 - Part 2: Dùng AI hỗ trợ build hai Docker image, chạy container và đọc kích thước bằng Docker inspect; dùng mirror ECR khi Docker Hub trả 429.
+- Part 2: Dùng AI hỗ trợ khởi động stack Compose với image từ mirror, kiểm tra HTTP qua Nginx và dừng stack sau bài test.
