@@ -30,6 +30,14 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 | Kết nối | Localhost, cổng 8000 | Host và cổng cấu hình được | Container và nền tảng cloud có thể truy cập |
 | Shutdown | Không có xử lý riêng | Có lifespan để dọn dẹp | Giúp đóng tài nguyên khi dừng dịch vụ |
 
+## Part 3: Cloud deployment
+
+Agent được deploy trên Render tại [URL công khai](https://k5-l3b-day14-nguyentrungdung-2a202604084.onrender.com). `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chi tiết lệnh kiểm tra nằm trong `DEPLOYMENT.md`; trường hợp có key còn cần kiểm tra.
+
+Trong cấu hình ví dụ `03-cloud-deployment/railway/railway.toml`, Railway dùng Nixpacks và khai báo lệnh khởi động Uvicorn; cấu hình `06-lab-complete/render.yaml` dùng Docker runtime, khai báo health check và các biến môi trường. Hai file thuộc hai ứng dụng mẫu khác nhau, nên lệnh chạy không thể đem thay nguyên xi cho nhau.
+
+Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build image, push image rồi deploy image theo commit lên Cloud Run. Cấu hình deploy chỉ định tài nguyên, giới hạn instance và secret từ Secret Manager. File `service.yaml` mô tả thêm cổng, concurrency, autoscaling và probe `/health`, `/ready`. Chưa triển khai pipeline này lên GCP.
+
 ## Part 6: Kiểm tra production
 
 ```text
@@ -60,3 +68,4 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 - Part 3: Dùng AI hỗ trợ kiểm tra URL Render công khai. `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chưa kiểm tra request có key.
 - Part 6: Chạy lại script chấm đầy đủ sau khi tải được Docker image; kết quả 12/12, 42/42 checks.
 - Part 7: Dùng AI hỗ trợ chạy load test với các mức concurrency và tỷ lệ request chậm, rồi đối chiếu các con số trong báo cáo với JSON.
+- Part 3: Dùng AI hỗ trợ đọc và so sánh các file cấu hình cloud, kiểm tra endpoint công khai.
