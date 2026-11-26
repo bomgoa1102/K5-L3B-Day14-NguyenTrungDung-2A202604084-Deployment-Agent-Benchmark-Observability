@@ -35,3 +35,4 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 - Dùng AI để đọc yêu cầu và hỗ trợ phân tích hai phiên bản Part 1, soạn bảng so sánh và chạy thử endpoint. Kết quả gọi API được lấy từ lệnh chạy tại máy.
 - Part 6: Dùng AI hỗ trợ triển khai agent, cấu hình Docker và Render, và chạy script kiểm tra. Với Redis cục bộ, chế độ `--skip-docker` đạt 10/12 tiêu chí; hai tiêu chí cần Docker chưa kiểm tra được do Docker Hub trả 429 khi tải image. Cần chạy lại đầy đủ khi tải được image.
 - Part 7: Dùng AI hỗ trợ chạy eval và bổ sung kiến thức về JWT, HPA. Đã chạy lại với cùng dataset và đối chiếu baseline: 23/23, không regression. Các lượt eval đặt `MOCK_ERROR_RATE=0`.
+- Part 3: Dùng AI hỗ trợ kiểm tra URL Render công khai. `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chưa kiểm tra request có key.
