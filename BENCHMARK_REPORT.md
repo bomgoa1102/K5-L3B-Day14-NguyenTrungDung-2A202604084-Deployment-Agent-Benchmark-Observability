@@ -88,13 +88,13 @@ Các lượt eval chạy với `MOCK_ERROR_RATE=0` để so sánh chất lượn
 
 **Thí nghiệm E không làm alert nào firing. Bạn sẽ phát hiện loại sự cố này trong production bằng cách nào?**
 
-Chạy eval định kỳ trên golden dataset và so sánh với baseline; đặt quality gate để chặn release nếu accuracy giảm hoặc có regression. Bổ sung theo dõi phản hồi người dùng và kiểm tra các trường hợp thực tế.
+Chạy eval định kỳ trên golden dataset và so sánh với baseline; đặt quality gate để chặn release nếu accuracy giảm hoặc có regression. Bổ sung theo dõi phản hồi người dùng và kiểm tra các trường hợp thực tế. Trong CI, chạy `run_eval.py` với `--baseline` và `--min-accuracy`; exit code 1 khi quality gate thất bại sẽ làm job thất bại và có thể dùng làm kiểm tra bắt buộc trước merge.
 
 A và B được bật đồng thời từ 16:25:21. Thời gian là lần đầu series `ALERTS{alertstate="firing"}` xuất hiện trong Prometheus, truy vấn theo bước 5 giây tính từ lúc khởi động cấu hình; có thể lệch vài giây do scrape và bước truy vấn. C và D được đo riêng theo cùng cách; dữ liệu series được lưu trong `reports/alert_firing_history.json`. Với E, eval v1 qua stack đạt 4,3%, có 22 câu regression so với baseline v2 và exit code 1 (`reports/eval_v1_regression.json`). Alert cost của C còn firing do cửa sổ đo lịch sử, nên không quy kết nó là alert do chất lượng v1.
 
 ### 4.3 Debug bằng trace
 
-Chọn 1 trace chậm nhất bạn tìm được:
+Chọn một trace chậm đã tìm được:
 
 - `trace_id`: `5ff718883eece6e43c79bcadc561d2a6`
 - Tổng thời gian: 1672,757 ms
