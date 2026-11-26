@@ -19,6 +19,13 @@
 
 ---
 
+## Exercise 7.1: Metrics
+
+- **Counter:** `http_requests_total` đếm request theo method, route và status; giá trị tích lũy chỉ tăng trong vòng đời process.
+- **Gauge:** `agent_in_flight_requests` biểu diễn số request đang xử lý, có thể tăng hoặc giảm.
+- **Histogram:** `http_request_duration_seconds` đếm latency theo bucket; `agent_question_length_chars` đếm phân bố độ dài câu hỏi. Sau request thử nghiệm, `/metrics` có `_bucket`, `_count` và `_sum` của histogram mới.
+- Nếu dùng đường dẫn thật làm label, bot gọi hàng nghìn URL khác nhau sẽ tạo nhiều time series và tốn bộ nhớ. Dùng route template và `unmatched` gom các URL không khớp, giúp hạn chế cardinality.
+
 ## 2. Benchmark hiệu năng (develop, `load_test.py`)
 
 ### 2.1 Concurrency vs latency (agent v2)
@@ -75,6 +82,13 @@ Các lượt eval chạy với `MOCK_ERROR_RATE=0` để so sánh chất lượn
 - [x] Một trace chậm trong Jaeger (thấy span nào chiếm thời gian)
 - [x] Một trace lỗi trong Jaeger (có event `exception`)
 - [x] Trang Alerts của Prometheus với ít nhất 1 alert đang **firing**
+
+### Exercise 7.4: Đọc dashboard
+
+- Trong ảnh Grafana, p95 khoảng **1,90 giây**, còn đường average khoảng **0,55–0,60 giây** (đọc xấp xỉ từ đồ thị). Khoảng cách lớn cho thấy một nhóm request rất chậm làm tăng tail latency; lần chụp này đang bật cả mô phỏng lỗi và request chậm.
+- Trong một lượt chạy lại riêng với 30 user và cấu hình mặc định, truy vấn Prometheus `sum by (instance) (rate(http_requests_total{job="agent",route="/ask"}[1m]))` cho khoảng **4,45** và **4,36 request/giây** ở hai instance. Ở thời điểm đó Nginx chia khá đều; một mẫu không chứng minh mọi khoảng thời gian đều cân bằng.
+- Input tokens/s thường lớn hơn output tokens/s vì input bao gồm system prompt, câu hỏi và context retrieval, còn output là câu trả lời ngắn. Tỷ lệ cụ thể phụ thuộc nội dung request.
+- `GET /metrics` qua Nginx trả **HTTP 404** khi kiểm tra lại. Nginx chủ động chặn endpoint này khỏi cổng công khai; Prometheus vẫn scrape trực tiếp các instance trong mạng nội bộ.
 
 ### 4.2 Thí nghiệm "phá hệ thống"
 
