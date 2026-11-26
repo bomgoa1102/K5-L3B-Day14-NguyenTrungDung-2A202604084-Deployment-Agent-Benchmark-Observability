@@ -95,6 +95,20 @@ Admin có giới hạn riêng cao hơn, không phải được bỏ qua hoàn to
 
 Ví dụ Part 4 theo dõi token và chi phí theo user mỗi ngày, kiểm tra trước khi gọi model, trả 402 khi user hết ngân sách và 503 khi ngân sách chung hết. State hiện lưu trong memory. Với bài toán ngân sách 10 USD/tháng theo user, có thể lưu tổng theo khóa `budget:<user>:<năm-tháng>` trong Redis, kiểm tra tổng cộng chi phí ước tính trước request rồi cập nhật an toàn khi ghi nhận; dùng expiry để dọn dữ liệu cũ. Việc kiểm tra và cập nhật đồng thời cần atomic để tránh nhiều request cùng vượt ngân sách.
 
+## Part 5: Scaling và Reliability
+
+### Health, readiness và shutdown
+
+Bản develop trả `GET /health` HTTP 200 với `status: ok` và `GET /ready` HTTP 200 với `ready: true`. Liveness cho biết tiến trình còn hoạt động; readiness cho biết instance đã sẵn sàng nhận request. Trong ứng dụng có phụ thuộc Redis, readiness cần kiểm tra cả Redis để load balancer tránh chuyển request đến instance chưa sẵn sàng.
+
+Khi thử gửi SIGTERM trong lúc `POST /ask` đang chạy, request vẫn trả HTTP 200 nhưng tiến trình ví dụ develop không tự thoát: handler ghi log nhận signal nhưng không chuyển tiếp cho Uvicorn. Tôi đã dừng tiến trình sau khi xác nhận. Không thể kết luận graceful shutdown hoàn chỉnh từ ví dụ này. Agent Part 6 đã được script chấm kiểm tra riêng: request đang xử lý hoàn tất và tiến trình thoát code 0 khi nhận SIGTERM.
+
+### Stateless, load balancing và session
+
+Chạy stack `k5-day14-scaling` với ba instance agent, Redis và Nginx. Ba instance đều healthy. Script `test_stateless.py` gửi 5 câu hỏi trong cùng một session; Nginx phân phối request tới cả 3 instance, và history đọc lại có đủ 10 message (5 user, 5 assistant).
+
+State phiên chat nằm trong Redis thay vì bộ nhớ riêng của từng instance, nên instance khác vẫn đọc được lịch sử. Điều này giúp scale ngang, nhưng Redis trở thành dependency cần được giám sát và bảo vệ. Sau bài test đã tắt stack và dọn volume lab.
+
 ## Part 6: Kiểm tra production
 
 ```text
@@ -132,3 +146,4 @@ Ví dụ Part 4 theo dõi token và chi phí theo user mỗi ngày, kiểm tra t
 - Part 2: Dùng AI hỗ trợ khởi động stack Compose với image từ mirror, kiểm tra HTTP qua Nginx và dừng stack sau bài test.
 - Part 4: Dùng AI hỗ trợ chạy ví dụ API key và JWT, kiểm tra 401, 200, 429 và giải thích rate limit, cost guard; token không đưa vào bài.
 - Part 4: Chạy thêm kiểm tra chờ sau 429; đợi theo Retry-After và xác nhận request sau đó trả 200.
+- Part 5: Dùng AI hỗ trợ chạy health/readiness, thử SIGTERM và test session qua ba instance; ghi nhận tiến trình ví dụ develop không tự thoát sau SIGTERM.
