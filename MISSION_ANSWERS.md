@@ -87,6 +87,8 @@ Retry-After: 50
 {"detail":{"error":"Rate limit exceeded","limit":10,"window_seconds":60,"retry_after_seconds":50}}
 ```
 
+Chạy thêm một lượt từ cửa sổ mới: 10 request đầu trả 200, request thứ 11 trả 429 với `Retry-After: 59`. Sau khi chờ 60 giây, gửi lại thì nhận HTTP 200. Như vậy 429 là kết quả bảo vệ có chủ ý khi vượt giới hạn, và client có thể chờ theo `Retry-After` trước khi thử lại.
+
 Admin có giới hạn riêng cao hơn, không phải được bỏ qua hoàn toàn. Bản in-memory không chia sẻ giữa các instance; muốn scale cần lưu state dùng chung, ví dụ Redis.
 
 ### Cost guard
@@ -129,3 +131,4 @@ Ví dụ Part 4 theo dõi token và chi phí theo user mỗi ngày, kiểm tra t
 - Part 2: Dùng AI hỗ trợ build hai Docker image, chạy container và đọc kích thước bằng Docker inspect; dùng mirror ECR khi Docker Hub trả 429.
 - Part 2: Dùng AI hỗ trợ khởi động stack Compose với image từ mirror, kiểm tra HTTP qua Nginx và dừng stack sau bài test.
 - Part 4: Dùng AI hỗ trợ chạy ví dụ API key và JWT, kiểm tra 401, 200, 429 và giải thích rate limit, cost guard; token không đưa vào bài.
+- Part 4: Chạy thêm kiểm tra chờ sau 429; đợi theo Retry-After và xác nhận request sau đó trả 200.
