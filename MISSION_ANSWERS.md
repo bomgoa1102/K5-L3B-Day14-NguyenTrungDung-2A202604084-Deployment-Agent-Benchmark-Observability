@@ -147,3 +147,4 @@ State phiên chat nằm trong Redis thay vì bộ nhớ riêng của từng inst
 - Part 4: Dùng AI hỗ trợ chạy ví dụ API key và JWT, kiểm tra 401, 200, 429 và giải thích rate limit, cost guard; token không đưa vào bài.
 - Part 4: Chạy thêm kiểm tra chờ sau 429; đợi theo Retry-After và xác nhận request sau đó trả 200.
 - Part 5: Dùng AI hỗ trợ chạy health/readiness, thử SIGTERM và test session qua ba instance; ghi nhận tiến trình ví dụ develop không tự thoát sau SIGTERM.
+- Part 7: Dùng AI hỗ trợ đối chiếu ảnh, dữ liệu alert Prometheus, trace Jaeger và log, chạy thí nghiệm cost, pause instance và eval v1; thời gian alert lấy từ series thực tế với bước truy vấn 5 giây.

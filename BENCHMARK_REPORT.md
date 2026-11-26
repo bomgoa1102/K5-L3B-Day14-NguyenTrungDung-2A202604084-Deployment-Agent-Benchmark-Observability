@@ -71,36 +71,38 @@ Các lượt eval chạy với `MOCK_ERROR_RATE=0` để so sánh chất lượn
 
 ### 4.1 Screenshot
 
-- [ ] Dashboard Grafana khi đang có tải (thấy rõ Golden Signals)
-- [ ] Một trace chậm trong Jaeger (thấy span nào chiếm thời gian)
-- [ ] Một trace lỗi trong Jaeger (có event `exception`)
-- [ ] Trang Alerts của Prometheus với ít nhất 1 alert đang **firing**
+- [x] Dashboard Grafana khi đang có tải (thấy rõ Golden Signals)
+- [x] Một trace chậm trong Jaeger (thấy span nào chiếm thời gian)
+- [x] Một trace lỗi trong Jaeger (có event `exception`)
+- [x] Trang Alerts của Prometheus với ít nhất 1 alert đang **firing**
 
 ### 4.2 Thí nghiệm "phá hệ thống"
 
 | # | Thay đổi | Alert nào firing | Thời gian từ lúc đổi → firing | Panel nào phản ánh rõ nhất |
 |---|---|---|---|---|
-| A | `MOCK_ERROR_RATE=0.2` | | | |
-| B | `MOCK_SLOW_RATE=0.3` | | | |
-| C | `LLM_MODEL=mock-llm-large` | | | |
-| D | `docker pause` 1 instance | | | |
-| E | `AGENT_VERSION=v1` | | | |
+| A | `MOCK_ERROR_RATE=0.2` | AgentHighErrorRate | Khoảng 90 giây | Error rate |
+| B | `MOCK_SLOW_RATE=0.3` | AgentHighLatencyP95 | Khoảng 150 giây | Latency p95 |
+| C | `LLM_MODEL=mock-llm-large` | LLMCostBurnRateHigh | Khoảng 155 giây | Cost burn rate |
+| D | `docker pause` 1 instance | AgentInstanceDown | Khoảng 40 giây | Instances up |
+| E | `AGENT_VERSION=v1` | Không có alert riêng cho chất lượng; alert cost cũ còn firing | Không áp dụng | Version, retrieval hit ratio; cần eval |
 
 **Thí nghiệm E không làm alert nào firing. Bạn sẽ phát hiện loại sự cố này trong production bằng cách nào?**
 
-...
+Chạy eval định kỳ trên golden dataset và so sánh với baseline; đặt quality gate để chặn release nếu accuracy giảm hoặc có regression. Bổ sung theo dõi phản hồi người dùng và kiểm tra các trường hợp thực tế.
+
+A và B được bật đồng thời từ 16:25:21. Thời gian là lần đầu series `ALERTS{alertstate="firing"}` xuất hiện trong Prometheus, truy vấn theo bước 5 giây tính từ lúc khởi động cấu hình; có thể lệch vài giây do scrape và bước truy vấn. C và D được đo riêng theo cùng cách; dữ liệu series được lưu trong `reports/alert_firing_history.json`. Với E, eval v1 qua stack đạt 4,3%, có 22 câu regression so với baseline v2 và exit code 1 (`reports/eval_v1_regression.json`). Alert cost của C còn firing do cửa sổ đo lịch sử, nên không quy kết nó là alert do chất lượng v1.
 
 ### 4.3 Debug bằng trace
 
 Chọn 1 trace chậm nhất bạn tìm được:
 
-- `trace_id`: ...
-- Tổng thời gian: ... ms
-- Span chiếm nhiều thời gian nhất: ... (... ms, ...%)
+- `trace_id`: `5ff718883eece6e43c79bcadc561d2a6`
+- Tổng thời gian: 1672,757 ms
+- Span con chiếm nhiều thời gian nhất: `chat mock-llm-small` (1654,740 ms, khoảng 98,9%).
 - Dòng log tương ứng (grep theo `trace_id`):
 
 ```json
-
+{"ts":"2026-11-26T09:33:58.288981+00:00","level":"INFO","service":"observable-agent","instance":"05550c12995c","event":"llm_call","trace_id":"5ff718883eece6e43c79bcadc561d2a6","span_id":"56c07c04791c6287","request_id":"f70da291beb1","model":"mock-llm-small","agent_version":"v2","input_tokens":37,"output_tokens":17,"cost_usd":0.000016,"llm_ms":1654.6}
 ```
 
 ---
@@ -119,9 +121,7 @@ Chọn 1 trace chậm nhất bạn tìm được:
 ## 6. Kết luận
 
 - 3 điều bạn học được về benchmark & observability:
-  1. ...
-  2. ...
-  3. ...
-- Nếu đưa agent này lên production thật, bạn sẽ thêm metric / alert nào nữa?
-
-...
+  1. p95/p99 cho thấy các request chậm mà trung bình có thể che mất.
+  2. Eval giúp phát hiện suy giảm chất lượng mà metric hạ tầng không phản ánh.
+  3. Metrics giúp phát hiện vấn đề; trace và log cùng trace ID giúp tìm nguyên nhân.
+- Nếu đưa agent này lên production thật, tôi sẽ theo dõi lỗi và latency ở load balancer, chất lượng câu trả lời, Redis, cùng cảnh báo dựa trên error budget và chi phí theo từng khoảng thời gian.
