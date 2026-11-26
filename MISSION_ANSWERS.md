@@ -70,3 +70,4 @@ Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build i
 - Part 7: Dùng AI hỗ trợ chạy load test với các mức concurrency và tỷ lệ request chậm, rồi đối chiếu các con số trong báo cáo với JSON.
 - Part 3: Dùng AI hỗ trợ đọc và so sánh các file cấu hình cloud, kiểm tra endpoint công khai.
 - Part 7: Dùng AI hỗ trợ tìm lỗi container observability không tìm thấy uvicorn; đặt HOME phù hợp với thư mục cài thư viện và kiểm tra lại request qua Nginx trả HTTP 200.
+- Part 7: Dùng AI hỗ trợ chạy Locust với 1 và 3 instance, dùng `--no-deps` để giữ đúng số instance và lấy số từ dòng POST /ask của CSV. `promtool test rules` trả SUCCESS.

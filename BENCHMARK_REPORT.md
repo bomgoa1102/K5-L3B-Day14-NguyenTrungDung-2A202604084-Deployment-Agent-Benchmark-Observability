@@ -109,12 +109,10 @@ Chọn 1 trace chậm nhất bạn tìm được:
 
 | Số instance | RPS | p50 (ms) | p95 (ms) | p99 (ms) | Failures |
 |---|---|---|---|---|---|
-| 1 | | | | | |
-| 3 | | | | | |
+| 1 | 59,81 | 190 | 240 | 1700 | 66/7125 (0,93%) |
+| 3 | 60,34 | 190 | 220 | 1700 | 79/7186 (1,10%) |
 
-**Giải thích kết quả:** Scale có cải thiện p95 không? Nút thắt nằm ở đâu?
-
-...
+**Giải thích kết quả:** Bảng dùng riêng dòng POST /ask trong CSV. p95 giảm từ 240 xuống 220 ms và throughput gần như không đổi. Với tải này, latency giả lập của LLM có thể là yếu tố chi phối; một lần đo chưa đủ để khẳng định nút thắt. Dùng `docker compose run --no-deps` để Locust không tự thay đổi số instance.
 
 ---
 
