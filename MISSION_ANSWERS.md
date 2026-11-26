@@ -30,6 +30,20 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 | Kết nối | Localhost, cổng 8000 | Host và cổng cấu hình được | Container và nền tảng cloud có thể truy cập |
 | Shutdown | Không có xử lý riêng | Có lifespan để dọn dẹp | Giúp đóng tài nguyên khi dừng dịch vụ |
 
+## Part 2: Docker
+
+### Exercise 2.1–2.3: Dockerfile và kích thước
+
+- Base image bản develop là `python:3.11`; working directory là `/app`.
+- Copy `requirements.txt` trước source để Docker dùng lại cache cài dependency khi chỉ đổi code.
+- `CMD` cung cấp lệnh hoặc tham số mặc định có thể thay khi chạy container; `ENTRYPOINT` xác định chương trình chính và các tham số chạy thêm thường được truyền cho chương trình đó.
+- Bản multi-stage cài dependency ở builder, sau đó chỉ copy các gói cần chạy sang runtime, nên không mang theo toàn bộ công cụ build.
+- Docker inspect đo bản develop 1.667.780.304 bytes (khoảng 1.667,8 MB), bản production 239.815.377 bytes (khoảng 239,8 MB): giảm khoảng 85,6% theo đơn vị MB thập phân.
+- Đã chạy container develop và gọi `POST /ask?question=What%20is%20Docker`: HTTP 200. Bản production trả HTTP 200 tại `/health`. Ví dụ develop nhận question qua query, không phải JSON body.
+- Docker Hub trả 429 khi tải `python:3.11`; dùng image tương ứng từ public ECR rồi gắn tag local để build.
+
+Exercise 2.4: Chưa kiểm tra stack Compose qua Nginx.
+
 ## Part 3: Cloud deployment
 
 Agent được deploy trên Render tại [URL công khai](https://k5-l3b-day14-nguyentrungdung-2a202604084.onrender.com). `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chi tiết lệnh kiểm tra nằm trong `DEPLOYMENT.md`; request có key được xác nhận trả 200 trên Render.
@@ -71,3 +85,4 @@ Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build i
 - Part 3: Dùng AI hỗ trợ đọc và so sánh các file cấu hình cloud, kiểm tra endpoint công khai.
 - Part 7: Dùng AI hỗ trợ tìm lỗi container observability không tìm thấy uvicorn; đặt HOME phù hợp với thư mục cài thư viện và kiểm tra lại request qua Nginx trả HTTP 200.
 - Part 7: Dùng AI hỗ trợ chạy Locust với 1 và 3 instance, dùng `--no-deps` để giữ đúng số instance và lấy số từ dòng POST /ask của CSV. `promtool test rules` trả SUCCESS.
+- Part 2: Dùng AI hỗ trợ build hai Docker image, chạy container và đọc kích thước bằng Docker inspect; dùng mirror ECR khi Docker Hub trả 429.
