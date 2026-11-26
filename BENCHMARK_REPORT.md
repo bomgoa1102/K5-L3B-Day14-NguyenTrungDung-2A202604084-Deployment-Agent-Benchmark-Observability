@@ -5,7 +5,7 @@
 
 **Họ tên:** Nguyễn Trung Dũng
 **Ngày chạy:** 26/11/2026
-**Môi trường:** (vd MacBook M2, Docker Desktop 4 CPU / 8GB RAM)
+**Môi trường:** Linux, 8 CPU logic, 15 GiB RAM; Python 3.12, đo trên máy cục bộ.
 
 ---
 
@@ -13,9 +13,9 @@
 
 | SLI | SLO | Lý do chọn ngưỡng này |
 |---|---|---|
-| p95 latency `/ask` | < ___ ms | |
-| Error rate `/ask` | < ___ % | |
-| Accuracy trên golden dataset | ≥ ___ % | |
+| p95 latency `/ask` | ≤ 500 ms | Giữ thời gian chờ phần lớn request dưới nửa giây. |
+| Error rate `/ask` | ≤ 2% | Giới hạn tỷ lệ request lỗi. |
+| Accuracy trên golden dataset | ≥ 100% | Mục tiêu bài tập sau khi sửa knowledge base. |
 
 ---
 
@@ -25,26 +25,22 @@
 
 | Concurrency | RPS | p50 (ms) | p95 (ms) | p99 (ms) | Error rate | SLO |
 |---|---|---|---|---|---|---|
-| 1 | | | | | | |
-| 10 | | | | | | |
-| 50 | | | | | | |
-| 100 | | | | | | |
+| 1 | 4.28 | 191.6 | 220.6 | 1700.3 | 0.67% | PASS |
+| 10 | 35.8 | 190.7 | 222.4 | 1700.1 | 0.00% | PASS |
+| 50 | 109.8 | 190.3 | 227.8 | 276.0 | 0.33% | PASS |
+| 100 | 73.72 | 274.8 | 2203.8 | 2408.7 | 1.33% | FAIL |
 
-**Nhận xét:** RPS có tăng tuyến tính theo concurrency không? Vì sao?
-
-...
+**Nhận xét:** RPS tăng từ 4,28 lên 109,8 khi concurrency tăng từ 1 lên 50, rồi giảm còn 73,72 ở mức 100. Tải cao có thể gây xếp hàng và tăng overhead; kết quả còn phụ thuộc số request chậm ngẫu nhiên và mẫu 300 request.
 
 ### 2.2 Tail latency
 
 | `MOCK_SLOW_RATE` | avg (ms) | p95 (ms) | p99 (ms) |
 |---|---|---|---|
-| 0 | | | |
-| 0.03 (mặc định) | | | |
-| 0.1 | | | |
+| 0 | 191.1 | 217.3 | 227.1 |
+| 0.03 (mặc định) | 236.0 | 224.6 | 1696.9 |
+| 0.1 | 304.7 | 1676.0 | 1715.9 |
 
-**Nhận xét:** Chỉ số nào nhạy nhất với request chậm? Vì sao SLO không nên đặt theo average?
-
-...
+**Nhận xét:** p99 tăng từ 227,1 ms lên 1696,9 ms khi tỷ lệ chậm tăng từ 0 lên 3%. Khi tỷ lệ chậm lên 10%, p95 cũng tăng lên 1676 ms. Trung bình che khuất trải nghiệm của nhóm request chậm nên không đủ để đặt SLO.
 
 ---
 
@@ -67,9 +63,7 @@
 
 Các lượt eval chạy với `MOCK_ERROR_RATE=0` để so sánh chất lượng, giữ các tham số latency mặc định.
 
-**Nhận xét về trade-off chất lượng / chi phí / latency giữa v1 và v2:**
-
-...
+**Nhận xét về trade-off chất lượng / chi phí / latency giữa v1 và v2:** v2 sau sửa dùng nhiều token hơn (112 so với 57 token/câu) và tổng chi phí cao hơn, nhưng cost trên câu đúng thấp hơn vì trả lời đúng nhiều hơn. Latency eval có thể dao động do mẫu nhỏ và request chậm ngẫu nhiên; cần dùng load test để đánh giá latency.
 
 ---
 

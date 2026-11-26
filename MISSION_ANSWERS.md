@@ -59,3 +59,4 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 - Part 7: Dùng AI hỗ trợ chạy eval và bổ sung kiến thức về JWT, HPA. Đã chạy lại với cùng dataset và đối chiếu baseline: 23/23, không regression. Các lượt eval đặt `MOCK_ERROR_RATE=0`.
 - Part 3: Dùng AI hỗ trợ kiểm tra URL Render công khai. `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chưa kiểm tra request có key.
 - Part 6: Chạy lại script chấm đầy đủ sau khi tải được Docker image; kết quả 12/12, 42/42 checks.
+- Part 7: Dùng AI hỗ trợ chạy load test với các mức concurrency và tỷ lệ request chậm, rồi đối chiếu các con số trong báo cáo với JSON.
