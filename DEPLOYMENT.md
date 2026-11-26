@@ -25,4 +25,4 @@ curl -i -X POST "$BASE/ask" -H 'Content-Type: application/json' \
 unset DAY14_API_KEY
 ```
 
-Lệnh có key vẫn cần kiểm tra thực tế bằng key đã cấu hình trên Render. `REDIS_URL` và `AGENT_API_KEY` được cấu hình trong Environment của web service, không đưa giá trị vào repo.
+Người dùng xác nhận đã kiểm tra trên Render: request có key trả HTTP 200. `REDIS_URL` và `AGENT_API_KEY` được cấu hình trong Environment của web service, không đưa giá trị vào repo.

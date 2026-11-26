@@ -32,7 +32,7 @@ Chạy ứng dụng bằng Uvicorn tại cổng 18765 và gửi `POST /ask?quest
 
 ## Part 3: Cloud deployment
 
-Agent được deploy trên Render tại [URL công khai](https://k5-l3b-day14-nguyentrungdung-2a202604084.onrender.com). `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chi tiết lệnh kiểm tra nằm trong `DEPLOYMENT.md`; trường hợp có key còn cần kiểm tra.
+Agent được deploy trên Render tại [URL công khai](https://k5-l3b-day14-nguyentrungdung-2a202604084.onrender.com). `/health` và `/ready` trả 200; `POST /ask` không có key trả 401. Chi tiết lệnh kiểm tra nằm trong `DEPLOYMENT.md`; request có key được xác nhận trả 200 trên Render.
 
 Trong cấu hình ví dụ `03-cloud-deployment/railway/railway.toml`, Railway dùng Nixpacks và khai báo lệnh khởi động Uvicorn; cấu hình `06-lab-complete/render.yaml` dùng Docker runtime, khai báo health check và các biến môi trường. Hai file thuộc hai ứng dụng mẫu khác nhau, nên lệnh chạy không thể đem thay nguyên xi cho nhau.
 
