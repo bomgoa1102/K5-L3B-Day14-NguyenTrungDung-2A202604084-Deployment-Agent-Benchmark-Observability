@@ -62,6 +62,37 @@ Trong cấu hình ví dụ `03-cloud-deployment/railway/railway.toml`, Railway d
 
 Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build image, push image rồi deploy image theo commit lên Cloud Run. Cấu hình deploy chỉ định tài nguyên, giới hạn instance và secret từ Secret Manager. File `service.yaml` mô tả thêm cổng, concurrency, autoscaling và probe `/health`, `/ready`. Chưa triển khai pipeline này lên GCP.
 
+## Part 4: API Security
+
+### API key và JWT
+
+Trong bản develop, dependency `verify_api_key` đọc header `X-API-Key`: thiếu key trả 401 và key sai trả 403. Key được đọc từ biến môi trường, nên có thể thay key tại nơi chạy ứng dụng rồi triển khai lại, không sửa code. Kết quả gọi local:
+
+```text
+Không có key: HTTP/1.1 401 Unauthorized
+{"detail":"Missing API key. Include header: X-API-Key: <your-key>"}
+Có key hợp lệ: HTTP/1.1 200 OK
+{"question":"Hello","answer":"Agent đang hoạt động tốt! (mock response) Hỏi thêm câu hỏi đi nhé."}
+```
+
+Ở bản production ví dụ, đăng nhập `POST /auth/token` bằng tài khoản student trả 200 và bearer token; token được gửi trong header `Authorization` để gọi `/ask`. Không ghi token vào bài.
+
+### Rate limit
+
+Bản ví dụ dùng sliding window lưu timestamp trong memory, với user 10 request/60 giây và admin 100 request/60 giây. Thử liên tiếp bằng student: request thứ 1 và 10 trả 200, request thứ 11 trả 429. Một lần gọi tiếp theo có kết quả:
+
+```text
+HTTP 429
+Retry-After: 50
+{"detail":{"error":"Rate limit exceeded","limit":10,"window_seconds":60,"retry_after_seconds":50}}
+```
+
+Admin có giới hạn riêng cao hơn, không phải được bỏ qua hoàn toàn. Bản in-memory không chia sẻ giữa các instance; muốn scale cần lưu state dùng chung, ví dụ Redis.
+
+### Cost guard
+
+Ví dụ Part 4 theo dõi token và chi phí theo user mỗi ngày, kiểm tra trước khi gọi model, trả 402 khi user hết ngân sách và 503 khi ngân sách chung hết. State hiện lưu trong memory. Với bài toán ngân sách 10 USD/tháng theo user, có thể lưu tổng theo khóa `budget:<user>:<năm-tháng>` trong Redis, kiểm tra tổng cộng chi phí ước tính trước request rồi cập nhật an toàn khi ghi nhận; dùng expiry để dọn dữ liệu cũ. Việc kiểm tra và cập nhật đồng thời cần atomic để tránh nhiều request cùng vượt ngân sách.
+
 ## Part 6: Kiểm tra production
 
 ```text
@@ -97,3 +128,4 @@ Với Cloud Run, `cloudbuild.yaml` mô tả chuỗi bước chạy test, build i
 - Part 7: Dùng AI hỗ trợ chạy Locust với 1 và 3 instance, dùng `--no-deps` để giữ đúng số instance và lấy số từ dòng POST /ask của CSV. `promtool test rules` trả SUCCESS.
 - Part 2: Dùng AI hỗ trợ build hai Docker image, chạy container và đọc kích thước bằng Docker inspect; dùng mirror ECR khi Docker Hub trả 429.
 - Part 2: Dùng AI hỗ trợ khởi động stack Compose với image từ mirror, kiểm tra HTTP qua Nginx và dừng stack sau bài test.
+- Part 4: Dùng AI hỗ trợ chạy ví dụ API key và JWT, kiểm tra 401, 200, 429 và giải thích rate limit, cost guard; token không đưa vào bài.
